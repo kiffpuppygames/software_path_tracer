@@ -12,8 +12,10 @@
 #include <map>
 #include <optional>
 #include <tuple>
+#include <memory>
 
 #include "globals.h"
+#include "spdlog/spdlog.h"
 
 //** \brief A code that describes the result of an operation
 enum ResultCode
@@ -49,22 +51,15 @@ template <typename T>
 struct Result 
 {
     ResultCode code;
-    std::unique_ptr<T> value;
+    std::optional<T> value;
 
     /**
      * \brief Constructs a result struct
      * \param c Code describing the operations result
      * \param v A pointer to the results value
      */    
-    Result(ResultCode c, std::unique_ptr<T> v = nullptr) : code(c), value(std::move(v)) {};
-
-    /**
-     * \brief Constructs a result struct
-     * \param c Code describing the operations result
-     * \param v The results value
-     */
-    Result(ResultCode c, T v) : code(c), value(std::move(v)) {};
-    
+    Result(ResultCode c, std::optional<T> v = std::nullopt ) : code(c), value(std::move(v)) {};
+        
     ResultCode getCode() const noexcept 
     {
         return code;
@@ -72,7 +67,7 @@ struct Result
 
     bool hasValue() const noexcept 
     {
-        return (value != nullptr);
+        return value.has_value();
     }
 
     /**

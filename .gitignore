@@ -3,7 +3,6 @@
 Binaries/
 doxygen/
 
-
 # Files
 *.vcxproj
 *.vcxproj.user

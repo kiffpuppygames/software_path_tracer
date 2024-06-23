@@ -2,6 +2,8 @@
 
 #pragma once
 
+#define KIFF_DEBUG
+
 #include <string>
 #include <vector>
 

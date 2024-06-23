@@ -37,7 +37,7 @@ void destroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 
 Result<VkDebugUtilsMessengerEXT> createDebugMessenger(VkInstance instance)
 {
-    VkDebugUtilsMessengerEXT debugMessenger;
+    VkDebugUtilsMessengerEXT debug_messenger;
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
     debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -45,13 +45,13 @@ Result<VkDebugUtilsMessengerEXT> createDebugMessenger(VkInstance instance)
     debugCreateInfo.pfnUserCallback = debugCallback;
     debugCreateInfo.pUserData = nullptr;
 
-    auto result = createDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger);
+    auto result = createDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debug_messenger);
 
     if (result != VK_SUCCESS)
     {
-        return Result<VkDebugUtilsMessengerEXT>(KIFF_SUCCESS);
+        return Result<VkDebugUtilsMessengerEXT>(KIFF_SUCCESS, debug_messenger);
     }
 
-    return Result<VkDebugUtilsMessengerEXT>(KIFF_ERROR, std::make_unique<VkDebugUtilsMessengerEXT>(debugMessenger));
+    return Result<VkDebugUtilsMessengerEXT>(KIFF_ERROR);
 }
 #endif

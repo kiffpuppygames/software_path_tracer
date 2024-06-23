@@ -11,28 +11,34 @@
 
 struct QueueFamilyIndices 
 {
-    int32_t graphicsFamily;
+    int32_t graphics_family;
 
     QueueFamilyIndices()
     {
-        graphicsFamily = -1;
+        graphics_family = -1;
     }
 
-    bool isComplete() 
+    bool isComplete() const
     {
-        return (graphicsFamily > -1);
+        return (graphics_family > -1);
     }
 };
 
 struct PhysicalDevice 
 {
-    VkPhysicalDevice vkPyhsicalDevice;
-    QueueFamilyIndices queueFamilyIndices;
+    VkPhysicalDevice vk_pyhsical_device;
+    QueueFamilyIndices queue_family_indices;
 };
 
 struct RenderContext
 {
-    PhysicalDevice physicalDevice;
+    PhysicalDevice physical_device;
+    VkDevice device;
+
+    ~RenderContext()
+    {
+        vkDestroyDevice(device, nullptr);
+    }
 };
 
 Result<QueueFamilyIndices> findQueueFamilies(VkPhysicalDevice device) 
@@ -49,12 +55,12 @@ Result<QueueFamilyIndices> findQueueFamilies(VkPhysicalDevice device)
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
         {
-            indices.graphicsFamily = i;
+            indices.graphics_family = i;
         }
 
         if (indices.isComplete()) 
         {
-            return Result<QueueFamilyIndices>(KIFF_SUCCESS, std::make_unique<QueueFamilyIndices>(indices));
+            return Result<QueueFamilyIndices>(KIFF_SUCCESS, indices);
             break;
         }
 
@@ -105,10 +111,10 @@ Result<PhysicalDevice> selectPhysicalDevice(VkInstance instance)
 #endif
 
             auto physical_device = PhysicalDevice{
-                .vkPyhsicalDevice = physicalDevices[i],
-                .queueFamilyIndices = indices.getValue()
+                .vk_pyhsical_device = physicalDevices[i],
+                .queue_family_indices = indices.getValue()
             };
-            return Result<PhysicalDevice>(KIFF_SUCCESS, std::make_unique<PhysicalDevice>(physical_device));
+            return Result<PhysicalDevice>(KIFF_SUCCESS, physical_device);
         }
 
         return Result<PhysicalDevice>(KIFF_SUITIBLE_PHYSICAL_DEVICE_NOT_FOUND);
@@ -121,7 +127,7 @@ Result<VkDevice> createLogicalDevice(PhysicalDevice physicalDevice)
 {
     VkDeviceQueueCreateInfo queue_create_info{};
     queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queue_create_info.queueFamilyIndex = physicalDevice.queueFamilyIndices.graphicsFamily;
+    queue_create_info.queueFamilyIndex = physicalDevice.queue_family_indices.graphics_family;
     queue_create_info.queueCount = 1;
 
     VkPhysicalDeviceFeatures deviceFeatures{};
@@ -138,11 +144,11 @@ Result<VkDevice> createLogicalDevice(PhysicalDevice physicalDevice)
     };
 
     VkDevice device;
-    auto result = vkCreateDevice(physicalDevice.vkPyhsicalDevice, &device_create_info, nullptr, &device);
+    auto result = vkCreateDevice(physicalDevice.vk_pyhsical_device, &device_create_info, nullptr, &device);
 
     if (result == VK_SUCCESS)
     {
-        return Result<VkDevice>(KIFF_SUCCESS, std::make_unique<VkDevice>(device));
+        return Result<VkDevice>(KIFF_SUCCESS, device);
     }
 
     return Result<VkDevice>(KIFF_CREATE_DEVICE_FAILED);

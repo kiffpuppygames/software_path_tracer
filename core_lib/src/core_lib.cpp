@@ -15,14 +15,14 @@
 
 namespace Core 
 {
-    void glfw_error_callback(int error, const char* description)
+    static void glfw_error_callback(int error, const char* description)
     {
         spdlog::error(ERROR_MSG_GLFW_ERROR, description);
     }
 
-    int main()
+    void initCore()
     {
-#ifndef NDEBUG
+#ifdef KIFF_DEBUG
         spdlog::info(DEBUG_MSG_APP_START);
 #endif
 
@@ -32,21 +32,21 @@ namespace Core
             std::exit(EXIT_FAILURE);
         }
 
-#ifndef NDEBUG
+#ifdef KIFF_DEBUG
         spdlog::info(DEBUG_GLFW_INIT);
 #endif
 
         glfwSetErrorCallback(glfw_error_callback);
 
-        auto instanceInfo = InstanceInfo
+        auto instanceInfo = AppContext::InstanceInfo
         {
-            .applicationName = "Test App",
-            .applicationVersion = VK_MAKE_API_VERSION(0,1,0,0),
-            .engineName = "Test Engine",
-            .engineVersion = VK_MAKE_API_VERSION(0,1,0,0)
+            .app_name = "Test App",
+            .app_version = VK_MAKE_API_VERSION(0,1,0,0),
+            .engine_name = "Test Engine",
+            .engine_version = VK_MAKE_API_VERSION(0,1,0,0)
         };
 
-        auto create_instance_result = createInstance(instanceInfo);
+        auto create_instance_result = AppContext::createInstance(instanceInfo);
 
         if(create_instance_result.getCode() != KIFF_SUCCESS)
         {
@@ -54,34 +54,34 @@ namespace Core
             std::exit(EXIT_FAILURE);
         }
 
-        auto appCtx = AppContext{};
-        appCtx.instance = create_instance_result.getValue();
+        auto app_ctx = AppContext::Context{};
+        app_ctx.instance = create_instance_result.getValue();
 
-#ifndef NDEBUG
+#ifdef KIFF_DEBUG
         spdlog::info(DEBUG_MSG_INSTANCE_CREATED);
 
-        auto createDebugMessengerResult = createDebugMessenger(appCtx.instance);
+        auto createDebugMessengerResult = createDebugMessenger(app_ctx.instance);
         if (createDebugMessengerResult.getCode() == KIFF_SUCCESS)
         {
-            appCtx.vkDebugMessenger = createDebugMessengerResult.getValue();
+            app_ctx.debug_messenger = createDebugMessengerResult.getValue();
         }
 
         spdlog::info(DEBUG_MSG_MESSENGER_CREATED);
 #endif
 
-        auto renderCtx = RenderContext{};
+        auto render_ctx = RenderContext{};
 
-        auto select_physical_device_result = selectPhysicalDevice(appCtx.instance);
+        auto select_physical_device_result = selectPhysicalDevice(app_ctx.instance);
         if (select_physical_device_result.getCode() == KIFF_SUCCESS)
         {
-            renderCtx.physicalDevice = select_physical_device_result.getValue();
+            render_ctx.physical_device = select_physical_device_result.getValue();
         }
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         GLFWwindow* window = glfwCreateWindow(640, 480, "Test App", NULL, NULL);
 
         VkSurfaceKHR surface;
-        VkResult err = glfwCreateWindowSurface(appCtx.instance, window, NULL, &surface);
+        VkResult err = glfwCreateWindowSurface(app_ctx.instance, window, NULL, &surface);
         if (err)
         {
             spdlog::error(ERROR_MSG_CREATE_SURFACE_FAILED, string_VkResult(err));
@@ -92,22 +92,13 @@ namespace Core
             glfwPollEvents();
         }
 
-#ifndef NDEBUG
-        destroyDebugUtilsMessengerEXT(appCtx.instance, appCtx.vkDebugMessenger, nullptr);
-#endif
-
-        vkDestroySurfaceKHR(appCtx.instance, surface, nullptr);
-        vkDestroyInstance(appCtx.instance, nullptr);
+        vkDestroySurfaceKHR(app_ctx.instance, surface, nullptr);
+        
         glfwDestroyWindow(window);
         glfwTerminate();
 
-#ifndef NDEBUG
+#ifdef KIFF_DEBUG
          spdlog::info(DEBUG_MSG_APP_EXIT);
 #endif
     }
-
-    void PrintHelloWorld()
-    {
-        spdlog::info("Hello World");
-    };
 }
