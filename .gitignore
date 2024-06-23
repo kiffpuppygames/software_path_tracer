@@ -1,6 +1,8 @@
 # Directories
 .vs/
 Binaries/
+doxygen/
+
 
 # Files
 *.vcxproj

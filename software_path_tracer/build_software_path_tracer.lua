@@ -1,7 +1,7 @@
-project "Core"
-   kind "StaticLib"
+project "App"
+   kind "ConsoleApp"
    language "C++"
-   cppdialect "C++20"
+   cppdialect "C++23"
    targetdir "Binaries/%{cfg.buildcfg}"
    staticruntime "off"
 
@@ -9,7 +9,15 @@ project "Core"
 
    includedirs
    {
-      "Source"
+      "Source",
+
+	  -- Include Core
+	  "../SoftwarePathTracer-Core/Source"
+   }
+
+   links
+   {
+      "SoftwarePathTracer-Core"
    }
 
    targetdir ("../Binaries/" .. OutputDir .. "/%{prj.name}")
@@ -17,7 +25,7 @@ project "Core"
 
    filter "system:windows"
        systemversion "latest"
-       defines { }
+       defines { "WINDOWS" }
 
    filter "configurations:Debug"
        defines { "DEBUG" }
